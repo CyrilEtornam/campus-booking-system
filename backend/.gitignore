@@ -1,0 +1,27 @@
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Local config override (contains DB password)
+application-local.properties
+src/main/resources/application-local.properties
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+.vscode/
