@@ -1,36 +1,39 @@
 # Campus Facility Booking System
-### CPEN 412 Project — MVC Architecture
+### CPEN 421 Project — MVC Architecture
 
-A full-stack web application for booking campus facilities (labs, study rooms, sports halls, auditoriums). Built with **Node.js/Express** (backend) and **React** (frontend) following the **MVC (Model-View-Controller)** architectural pattern.
+A full-stack web application for booking campus facilities (labs, study rooms, sports halls, auditoriums). Built with **Java 21 / Spring Boot 3** (backend) and **React 18** (frontend) following the **MVC (Model-View-Controller)** architectural pattern.
 
 ---
 
 ## MVC Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      MVC Architecture                           │
-│                                                                 │
-│  Browser (React)           Backend (Express)                    │
-│  ┌─────────────┐           ┌──────────────────────────────┐    │
-│  │   VIEW      │  HTTP/    │  ROUTES  →  CONTROLLERS       │   │
-│  │  (React     │  REST API │  (routes/) → (controllers/)   │   │
-│  │  Components)│  ◄────►  │              ↓                │   │
-│  │  Pages/     │           │           MODELS              │   │
-│  │  Components │           │          (models/)            │   │
-│  └─────────────┘           │              ↓                │   │
-│                             │         PostgreSQL DB         │   │
-│                             └──────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                         MVC Architecture                             │
+│                                                                      │
+│  Browser (React)              Backend (Spring Boot)                  │
+│  ┌─────────────┐              ┌────────────────────────────────┐    │
+│  │   VIEW      │   HTTP/      │  @RestController  →  @Service   │   │
+│  │  (React     │   REST API   │  (controller/)  →  (service/)   │   │
+│  │  Components)│   ◄──────►  │                    ↓            │   │
+│  │  Pages /    │              │               @Repository        │   │
+│  │  Components │              │              (repository/)       │   │
+│  └─────────────┘              │                    ↓            │   │
+│                                │            PostgreSQL DB         │   │
+│                                │          (JPA / Hibernate)       │   │
+│                                └────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 | Layer | Location | Responsibility |
 |-------|----------|----------------|
-| **Model** | `backend/models/` | Database queries, business logic (conflict detection) |
+| **Model** | `entity/`, `repository/` | JPA entities, Spring Data repositories, conflict detection |
 | **View** | `frontend/src/` | React components, pages, UI rendering |
-| **Controller** | `backend/controllers/` | Request handling, validation, response formatting |
-| **Routes** | `backend/routes/` | URL → Controller mapping |
-| **Middleware** | `backend/middleware/` | JWT auth, input validation |
+| **Controller** | `controller/` | `@RestController` classes — request handling, response formatting |
+| **Service** | `service/` | Business logic, validation, email notifications |
+| **Security** | `security/`, `config/SecurityConfig` | JWT filter, Spring Security, role-based access |
+| **DTO** | `dto/request/`, `dto/response/` | Request/response payload objects |
+| **Exception** | `exception/` | `@ControllerAdvice` global error handler |
 
 ---
 
@@ -38,59 +41,84 @@ A full-stack web application for booking campus facilities (labs, study rooms, s
 
 ```
 campus-booking-system/
-├── backend/
-│   ├── config/
-│   │   └── database.js         ← DB connection pool & schema init
-│   ├── controllers/
-│   │   ├── authController.js   ← Register, login, profile
-│   │   ├── bookingController.js← CRUD + conflict prevention
-│   │   ├── facilityController.js
-│   │   └── availabilityController.js ← 30-min slot grid
-│   ├── middleware/
-│   │   ├── auth.js             ← JWT protect + restrictTo(roles)
-│   │   └── validation.js       ← express-validator rule sets
-│   ├── models/
-│   │   ├── User.js             ← User DB operations + bcrypt
-│   │   ├── Facility.js         ← Facility CRUD + filtering
-│   │   └── Booking.js          ← Booking CRUD + conflict detection
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── facilities.js
-│   │   ├── bookings.js
-│   │   └── availability.js
-│   ├── scripts/
-│   │   └── seed.js             ← Sample data seeder
-│   ├── utils/
-│   │   └── emailService.js     ← Nodemailer notifications
-│   ├── server.js               ← Express app bootstrap
-│   ├── .env.example
-│   └── package.json
+├── backend/                                   ← Spring Boot 3 / Java 21
+│   ├── pom.xml
+│   └── src/main/
+│       ├── java/com/campus/booking/
+│       │   ├── BookingSystemApplication.java  ← @SpringBootApplication entry point
+│       │   ├── config/
+│       │   │   └── SecurityConfig.java        ← Spring Security + CORS config
+│       │   ├── controller/
+│       │   │   ├── AuthController.java        ← Register, login, profile, user list
+│       │   │   ├── BookingController.java     ← Booking CRUD + approve/reject
+│       │   │   ├── FacilityController.java    ← Facility CRUD
+│       │   │   ├── AvailabilityController.java← 30-min slot grid + weekly view
+│       │   │   └── HealthController.java      ← GET /api/health
+│       │   ├── service/
+│       │   │   ├── AuthService.java
+│       │   │   ├── BookingService.java        ← Conflict detection logic
+│       │   │   ├── FacilityService.java
+│       │   │   ├── AvailabilityService.java
+│       │   │   └── EmailService.java          ← Spring Mail notifications
+│       │   ├── entity/
+│       │   │   ├── User.java                  ← @Entity with Role enum
+│       │   │   ├── Facility.java
+│       │   │   ├── Booking.java               ← @Entity with Status enum
+│       │   │   ├── BookingStatusConverter.java
+│       │   │   └── UserRoleConverter.java
+│       │   ├── repository/
+│       │   │   ├── UserRepository.java        ← Spring Data JPA
+│       │   │   ├── FacilityRepository.java
+│       │   │   └── BookingRepository.java
+│       │   ├── dto/
+│       │   │   ├── request/                   ← LoginRequest, RegisterRequest,
+│       │   │   │                                 BookingRequest, FacilityRequest,
+│       │   │   │                                 UpdateBookingRequest, UpdateProfileRequest
+│       │   │   └── response/                  ← AuthResponse, BookingResponse,
+│       │   │                                     FacilityResponse, UserResponse, SlotDto
+│       │   ├── security/
+│       │   │   ├── JwtTokenProvider.java      ← JJWT token creation/validation
+│       │   │   ├── JwtAuthenticationFilter.java
+│       │   │   └── UserDetailsServiceImpl.java
+│       │   ├── exception/
+│       │   │   ├── GlobalExceptionHandler.java← @ControllerAdvice
+│       │   │   ├── BadRequestException.java
+│       │   │   ├── ConflictException.java
+│       │   │   └── ResourceNotFoundException.java
+│       │   └── scripts/
+│       │       └── DataSeeder.java            ← CommandLineRunner (profile: seed)
+│       └── resources/
+│           ├── application.properties         ← Main config (env-var driven)
+│           └── application-local.properties   ← Local dev overrides
 │
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Header.jsx
-│   │   │   ├── FacilityCard.jsx
-│   │   │   ├── BookingForm.jsx  ← 2-step booking with slot grid
-│   │   │   ├── BookingHistory.jsx
-│   │   │   ├── AvailabilityGrid.jsx ← 30-min slot visualisation
-│   │   │   └── AdminPanel.jsx   ← Approve/reject + facility mgmt
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx  ← JWT state, login/logout/register
-│   │   ├── pages/
-│   │   │   ├── HomePage.jsx
-│   │   │   ├── FacilitiesPage.jsx
-│   │   │   ├── BookingPage.jsx
-│   │   │   ├── DashboardPage.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── RegisterPage.jsx
-│   │   │   └── AdminPage.jsx
-│   │   ├── services/
-│   │   │   └── api.js          ← Axios instance + named helpers
-│   │   ├── App.jsx             ← Routing + protected routes
-│   │   └── index.css           ← Global design system
+├── frontend/                                  ← React 18 / Vite 5
+│   ├── package.json
 │   ├── vite.config.js
-│   └── package.json
+│   └── src/
+│       ├── App.jsx                            ← Routing + protected routes
+│       ├── index.css                          ← Global design system
+│       ├── components/
+│       │   ├── Header.jsx
+│       │   ├── FacilityCard.jsx
+│       │   ├── BookingForm.jsx                ← 2-step booking with slot grid
+│       │   ├── BookingHistory.jsx
+│       │   ├── AvailabilityGrid.jsx           ← 30-min slot visualisation
+│       │   ├── AdminPanel.jsx                 ← Approve/reject + facility mgmt
+│       │   ├── Modal.jsx
+│       │   └── SkeletonLoader.jsx
+│       ├── context/
+│       │   ├── AuthContext.jsx                ← JWT state, login/logout/register
+│       │   └── ThemeContext.jsx
+│       ├── pages/
+│       │   ├── HomePage.jsx
+│       │   ├── FacilitiesPage.jsx
+│       │   ├── BookingPage.jsx
+│       │   ├── DashboardPage.jsx
+│       │   ├── LoginPage.jsx
+│       │   ├── RegisterPage.jsx
+│       │   └── AdminPage.jsx
+│       └── services/
+│           └── api.js                         ← Axios instance + named helpers
 │
 └── README.md
 ```
@@ -100,69 +128,71 @@ campus-booking-system/
 ## Quick Start
 
 ### Prerequisites
-- Node.js ≥ 18
-- PostgreSQL ≥ 14
-- npm or yarn
+- Java 21+
+- Maven 3.9+
+- PostgreSQL 14+
+- Node.js 18+ and npm (frontend only)
 
-### 1 — Clone & install
-
-```bash
-# Install backend dependencies
-cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
-```
-
-### 2 — Configure environment
-
-```bash
-# Backend
-cd backend
-cp .env.example .env
-# Edit .env → fill in DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, JWT_SECRET
-
-# Frontend
-cd ../frontend
-cp .env.example .env
-# VITE_API_URL defaults to /api (proxied via Vite) — no change needed for local dev
-```
-
-### 3 — Create the database
+### 1 — Create the database
 
 ```sql
 -- In psql or pgAdmin:
 CREATE DATABASE campus_booking;
 ```
 
-The server automatically creates all tables on first start.
+Hibernate (`spring.jpa.hibernate.ddl-auto=update`) creates all tables automatically on first start.
 
-### 4 — Seed sample data
+### 2 — Configure the backend
+
+All settings are driven by environment variables with sensible defaults. For local development, edit `backend/src/main/resources/application-local.properties` or export variables before running:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_NAME` | `campus_booking` | Database name |
+| `DB_USER` | `postgres` | Database user |
+| `DB_PASSWORD` | `1234` | Database password |
+| `JWT_SECRET` | *(insecure default)* | Secret key — **change in production** |
+| `JWT_EXPIRES_MS` | `604800000` | Token TTL (7 days) |
+| `ADMIN_SECRET` | `admin-secret-change-me` | Required to register an admin account |
+| `FRONTEND_URL` | `http://localhost:5173` | Allowed CORS origin |
+| `EMAIL_USER` | *(empty)* | SMTP username — leave blank to disable email |
+| `EMAIL_PASS` | *(empty)* | SMTP password |
+| `EMAIL_ENABLED` | `false` | Set to `true` to send real emails |
+
+### 3 — Seed sample data
+
+The seeder runs when the `seed` Spring profile is active:
 
 ```bash
 cd backend
-npm run seed
+mvn spring-boot:run -Dspring-boot.run.profiles=seed
 ```
 
 **Demo accounts created:**
 
-| Role    | Email                 | Password    |
-|---------|-----------------------|-------------|
-| Admin   | admin@campus.edu      | Admin1234   |
-| Faculty | alice@campus.edu      | Faculty123  |
-| Student | dave@student.edu      | Student123  |
+| Role    | Email                | Password   |
+|---------|----------------------|------------|
+| Admin   | admin@campus.edu     | Admin1234  |
+| Faculty | alice@campus.edu     | Faculty123 |
+| Faculty | bob@campus.edu       | Faculty123 |
+| Faculty | carol@campus.edu     | Faculty123 |
+| Student | dave@student.edu     | Student123 |
+| Student | eve@student.edu      | Student123 |
+| Student | frank@student.edu    | Student123 |
+| Student | grace@student.edu    | Student123 |
 
-### 5 — Run the application
+### 4 — Run the application
 
 ```bash
 # Terminal 1 — Backend API (port 5000)
 cd backend
-npm run dev
+mvn spring-boot:run
 
-# Terminal 2 — Frontend React (port 5173)
+# Terminal 2 — Frontend (port 5173)
 cd frontend
+npm install
 npm run dev
 ```
 
@@ -173,56 +203,63 @@ Open **http://localhost:5173**
 ## API Reference
 
 ### Authentication
-| Method | Endpoint           | Auth | Description |
-|--------|--------------------|------|-------------|
-| POST   | /api/auth/register | –    | Register new user |
-| POST   | /api/auth/login    | –    | Login, returns JWT |
-| GET    | /api/auth/me       | JWT  | Get current user |
-| PUT    | /api/auth/profile  | JWT  | Update profile |
-| GET    | /api/auth/users    | Admin| List all users |
+| Method | Endpoint            | Auth  | Description |
+|--------|---------------------|-------|-------------|
+| POST   | /api/auth/register  | –     | Register new user |
+| POST   | /api/auth/login     | –     | Login, returns JWT |
+| GET    | /api/auth/me        | JWT   | Get current user |
+| PUT    | /api/auth/profile   | JWT   | Update profile |
+| GET    | /api/auth/users     | Admin | List all users |
 
 ### Facilities
-| Method | Endpoint             | Auth  | Description |
-|--------|----------------------|-------|-------------|
-| GET    | /api/facilities      | –     | List all (supports ?search, ?type, ?minCapacity) |
-| GET    | /api/facilities/:id  | –     | Get one |
-| POST   | /api/facilities      | Admin | Create |
-| PUT    | /api/facilities/:id  | Admin | Update |
-| DELETE | /api/facilities/:id  | Admin | Soft-delete |
+| Method | Endpoint              | Auth  | Description |
+|--------|-----------------------|-------|-------------|
+| GET    | /api/facilities       | –     | List all (supports `?search`, `?type`, `?minCapacity`) |
+| GET    | /api/facilities/:id   | –     | Get one |
+| POST   | /api/facilities       | Admin | Create |
+| PUT    | /api/facilities/:id   | Admin | Update |
+| DELETE | /api/facilities/:id   | Admin | Soft-delete |
 
 ### Bookings
-| Method | Endpoint          | Auth | Description |
-|--------|-------------------|------|-------------|
-| GET    | /api/bookings     | JWT  | List (users see own; admins see all) |
-| GET    | /api/bookings/:id | JWT  | Get one |
-| POST   | /api/bookings     | JWT  | Create (conflict check included) |
-| PUT    | /api/bookings/:id | JWT  | Update / approve / reject |
-| DELETE | /api/bookings/:id | JWT  | Cancel |
+| Method | Endpoint           | Auth  | Description |
+|--------|--------------------|-------|-------------|
+| GET    | /api/bookings      | JWT   | List (users see own; admins see all) |
+| GET    | /api/bookings/:id  | JWT   | Get one |
+| POST   | /api/bookings      | JWT   | Create (conflict check included) |
+| PUT    | /api/bookings/:id  | JWT   | Update / approve / reject |
+| DELETE | /api/bookings/:id  | JWT   | Cancel |
 
 ### Availability
-| Method | Endpoint               | Auth | Description |
-|--------|------------------------|------|-------------|
-| GET    | /api/availability      | –    | 30-min slot grid for date |
-| GET    | /api/availability/week | –    | 7-day availability summary |
+| Method | Endpoint                | Auth | Description |
+|--------|-------------------------|------|-------------|
+| GET    | /api/availability       | –    | 30-min slot grid for a date |
+| GET    | /api/availability/week  | –    | 7-day availability summary |
+
+### Health
+| Method | Endpoint     | Auth | Description |
+|--------|--------------|------|-------------|
+| GET    | /api/health  | –    | Liveness check |
 
 ---
 
 ## Key Features
 
 ### Double-Booking Prevention
-The `BookingModel.checkConflicts()` method uses Allen's interval-overlap algorithm:
+`BookingService` uses Allen's interval-overlap algorithm via a JPQL query before persisting any booking:
 ```sql
-WHERE b.start_time < $4 AND b.end_time > $3
+WHERE b.startTime < :endTime AND b.endTime > :startTime
+  AND b.facility = :facility
+  AND b.status <> 'CANCELLED'
 ```
-Any overlap (including edge cases) is detected before a booking is created or updated.
+Any overlap (including edge cases) raises a `ConflictException` (HTTP 409).
 
 ### Booking Approval Workflow
-- Facilities with `requires_approval = true` create bookings with `status = 'pending'`
+- Facilities with `requiresApproval = true` create bookings with `status = PENDING`
 - Admins approve/reject via the Admin Panel or `PUT /api/bookings/:id`
-- Email notifications sent on status changes
+- `EmailService` (Spring Mail) sends notifications on status changes when `EMAIL_ENABLED=true`
 
 ### 30-Minute Slot Grid
-The `AvailabilityGrid` component fetches slots from `/api/availability` and renders a colour-coded grid:
+`AvailabilityController` returns a list of `SlotDto` objects. The `AvailabilityGrid` React component renders a colour-coded grid:
 - 🟢 Available (clickable)
 - 🔴 Confirmed
 - 🟡 Pending
@@ -233,14 +270,14 @@ The `AvailabilityGrid` component fetches slots from `/api/availability` and rend
 
 ### Backend
 1. Create a new **Web Service** pointing to the `backend/` folder
-2. Build command: `npm install`
-3. Start command: `npm start`
-4. Add environment variables from `.env.example`
-5. Provision a **PostgreSQL** add-on; paste the connection URL into `DATABASE_URL` **or** individual `DB_*` vars
+2. Build command: `mvn package -DskipTests`
+3. Start command: `java -jar target/booking-system-1.0.0.jar`
+4. Set all environment variables listed in the **Configure the backend** section above
+5. Provision a **PostgreSQL** add-on and set `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 
 ### Frontend
 1. Create a new **Static Site** pointing to `frontend/`
-2. Build command: `npm run build`
+2. Build command: `npm install && npm run build`
 3. Publish directory: `dist`
 4. Set `VITE_API_URL` to your deployed backend URL + `/api`
 
@@ -251,30 +288,35 @@ The `AvailabilityGrid` component fetches slots from `/api/availability` and rend
 | Feature | Status |
 |---------|--------|
 | JWT Authentication | ✅ |
-| Role-based access (student/faculty/admin) | ✅ |
+| Role-based access (student / faculty / admin) | ✅ |
 | Admin approval workflow | ✅ |
-| Email notifications (nodemailer) | ✅ |
+| Email notifications (Spring Mail) | ✅ |
 | 30-min slot availability visualisation | ✅ |
 | Search & filter (type, capacity, keyword) | ✅ |
-| Booking conflict visualisation | ✅ |
+| Booking conflict detection & visualisation | ✅ |
 | Weekly availability calendar | ✅ |
 | Responsive UI | ✅ |
-| Sample data seeder | ✅ |
+| Sample data seeder (`seed` profile) | ✅ |
+| Global exception handler (`@ControllerAdvice`) | ✅ |
+| Snake_case JSON serialisation (frontend compat) | ✅ |
 
 ---
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Backend framework | Express.js 4 |
-| Database | PostgreSQL 14+ via `pg` |
-| Authentication | JSON Web Tokens (jsonwebtoken) |
-| Password hashing | bcryptjs |
-| Validation | express-validator |
-| Email | nodemailer |
+|-------|------------|
+| Backend language | Java 21 |
+| Backend framework | Spring Boot 3.2 |
+| ORM | Spring Data JPA / Hibernate 6 |
+| Database | PostgreSQL 14+ |
+| Authentication | Spring Security + JJWT 0.12 |
+| Validation | Spring Bean Validation (Jakarta) |
+| Email | Spring Mail (SMTP) |
+| Build tool | Maven 3 |
+| Boilerplate reduction | Lombok |
 | Frontend framework | React 18 |
 | Routing | React Router v6 |
 | HTTP client | Axios |
-| Build tool | Vite 5 |
-| Date utilities | date-fns |
+| Frontend build | Vite 5 |
+| Date utilities | date-fns 3 |
