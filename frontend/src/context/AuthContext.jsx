@@ -49,6 +49,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
+    // Set header synchronously before navigate() triggers child component effects
+    api.defaults.headers.common['Authorization'] = `Bearer ${data.data.token}`;
+    localStorage.setItem('token', data.data.token);
     setToken(data.data.token);
     setUser(data.data.user);
     return data.data.user;
@@ -56,12 +59,17 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (payload) => {
     const { data } = await api.post('/auth/register', payload);
+    // Set header synchronously before navigate() triggers child component effects
+    api.defaults.headers.common['Authorization'] = `Bearer ${data.data.token}`;
+    localStorage.setItem('token', data.data.token);
     setToken(data.data.token);
     setUser(data.data.user);
     return data.data.user;
   }, []);
 
   const logout = useCallback(() => {
+    delete api.defaults.headers.common['Authorization'];
+    localStorage.removeItem('token');
     setToken(null);
     setUser(null);
   }, []);

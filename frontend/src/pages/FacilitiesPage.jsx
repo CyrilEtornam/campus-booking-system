@@ -40,7 +40,7 @@ const FacilitiesPage = () => {
       <div className="container">
         <div className="section-header">
           <h1>Campus Facilities</h1>
-          <span className="text-muted">{facilities.length} facility{facilities.length !== 1 ? 'ies' : 'y'} available</span>
+          <span className="text-muted">{facilities.length} {facilities.length === 1 ? 'facility' : 'facilities'} available</span>
         </div>
 
         <div className="card" style={{ marginBottom: '1.5rem' }}>

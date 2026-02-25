@@ -15,6 +15,14 @@ const api = axios.create({
   timeout: 15_000,
 });
 
+// ── Seed auth header from localStorage immediately on module load ─────────
+// This ensures the header is present before any component effects fire,
+// preventing the race condition where child effects fire before AuthContext.
+const _storedToken = localStorage.getItem('token');
+if (_storedToken) {
+  api.defaults.headers.common['Authorization'] = `Bearer ${_storedToken}`;
+}
+
 // ── Response interceptor – normalise errors ───────────────────────────────
 api.interceptors.response.use(
   (res) => res,

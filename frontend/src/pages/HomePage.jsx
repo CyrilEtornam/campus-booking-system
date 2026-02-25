@@ -23,7 +23,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div>
+    <div className="home-page">
       {/* Hero */}
       <section className="hero">
         <div className="container" style={{ maxWidth: '700px' }}>
@@ -65,7 +65,7 @@ const HomePage = () => {
       </section>
 
       {/* Featured Facilities */}
-      <section className="page-wrapper">
+      <section style={{ padding: '3rem 1rem', borderTop: '1px solid var(--border)' }}>
         <div className="container">
           <div className="section-header" style={{ marginBottom: '1.5rem' }}>
             <h2>Featured Facilities</h2>

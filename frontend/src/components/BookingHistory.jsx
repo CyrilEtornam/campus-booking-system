@@ -107,13 +107,13 @@ const BookingHistory = ({ bookings, onRefresh, showUser = false }) => {
           <table>
             <thead>
               <tr>
-                <th>#</th>
+                <th className="col-hide-sm">#</th>
                 {showUser && <th>User</th>}
                 <th>Facility</th>
                 <th>Date</th>
                 <th>Time</th>
                 <th>Purpose</th>
-                <th>Attendees</th>
+                <th className="col-hide-sm">Attendees</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -121,7 +121,7 @@ const BookingHistory = ({ bookings, onRefresh, showUser = false }) => {
             <tbody>
               {filtered.map(b => (
                 <tr key={b.id}>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>#{b.id}</td>
+                  <td className="col-hide-sm" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>#{b.id}</td>
                   {showUser && (
                     <td>
                       <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{b.user_name}</div>
@@ -136,10 +136,10 @@ const BookingHistory = ({ bookings, onRefresh, showUser = false }) => {
                   <td style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                     {fmtTime(b.start_time)} &ndash; {fmtTime(b.end_time)}
                   </td>
-                  <td style={{ fontSize: '0.82rem', maxWidth: '180px' }}>
+                  <td className="col-truncate" style={{ fontSize: '0.82rem' }}>
                     {b.purpose || <span className="text-muted">&ndash;</span>}
                   </td>
-                  <td style={{ textAlign: 'center', fontSize: '0.85rem' }}>{b.attendees}</td>
+                  <td className="col-hide-sm" style={{ textAlign: 'center', fontSize: '0.85rem' }}>{b.attendees}</td>
                   <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
                   <td>
                     {(b.status === 'pending' || b.status === 'confirmed') && (

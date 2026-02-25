@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Calendar body -->
+  <rect x="8" y="18" width="84" height="72" rx="10" ry="10" fill="#1a8fd1"/>
+
+  <!-- White lower panel -->
+  <rect x="8" y="38" width="84" height="52" rx="0" ry="0" fill="#ffffff"/>
+  <rect x="8" y="38" width="84" height="52" rx="10" ry="10" fill="#ffffff"/>
+  <!-- Re-draw top of white panel flat -->
+  <rect x="8" y="38" width="84" height="14" fill="#ffffff"/>
+
+  <!-- Ring hooks -->
+  <rect x="30" y="10" width="8" height="18" rx="4" ry="4" fill="#1a8fd1"/>
+  <rect x="62" y="10" width="8" height="18" rx="4" ry="4" fill="#1a8fd1"/>
+  <!-- Ring hook inner cutouts (white) -->
+  <rect x="32" y="12" width="4" height="12" rx="2" ry="2" fill="#ffffff"/>
+  <rect x="64" y="12" width="4" height="12" rx="2" ry="2" fill="#ffffff"/>
+
+  <!-- Calendar grid lines (vertical) -->
+  <line x1="35" y1="52" x2="35" y2="80" stroke="#1a8fd1" stroke-width="4" stroke-linecap="round"/>
+  <line x1="50" y1="52" x2="50" y2="80" stroke="#1a8fd1" stroke-width="4" stroke-linecap="round"/>
+  <line x1="65" y1="52" x2="65" y2="80" stroke="#1a8fd1" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Calendar grid lines (horizontal) -->
+  <line x1="22" y1="66" x2="78" y2="66" stroke="#1a8fd1" stroke-width="4" stroke-linecap="round"/>
+</svg>
