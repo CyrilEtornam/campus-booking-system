@@ -1,86 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+
+const SunIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+  </svg>
+);
+
+const MenuIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M3 6h18M3 12h18M3 18h18" />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
 
 const Header = () => {
   const { user, logout, isAdmin } = useAuth();
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
-    setMenuOpen(false);
+    setMobileOpen(false);
   };
 
-  const isActive = (path) => location.pathname === path ? 'nav-link active' : 'nav-link';
+  const closeMobile = () => setMobileOpen(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKey = (e) => { if (e.key === 'Escape') setMobileOpen(false); };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [mobileOpen]);
+
+  const navLinkClass = (path) =>
+    `header-nav-link ${location.pathname === path ? 'active' : ''}`;
+
+  const navLinks = (
+    <>
+      <Link to="/" className={navLinkClass('/')} onClick={closeMobile}>Home</Link>
+      <Link to="/facilities" className={navLinkClass('/facilities')} onClick={closeMobile}>Facilities</Link>
+      {user && <Link to="/dashboard" className={navLinkClass('/dashboard')} onClick={closeMobile}>My Bookings</Link>}
+      {isAdmin && <Link to="/admin" className={navLinkClass('/admin')} onClick={closeMobile}>Admin</Link>}
+    </>
+  );
 
   return (
-    <header style={{
-      background: '#1a73e8', color: '#fff',
-      position: 'sticky', top: 0, zIndex: 100,
-      boxShadow: '0 2px 8px rgba(0,0,0,.15)',
-    }}>
-      <div className="container" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', height:'64px' }}>
+    <header className="header">
+      <div className="container">
+        <Link to="/" className="header-logo">CampusBook</Link>
 
-        {/* Logo */}
-        <Link to="/" style={{ color:'#fff', textDecoration:'none', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-          <span style={{ fontSize:'1.5rem' }}>🏛️</span>
-          <span style={{ fontWeight:700, fontSize:'1.1rem' }}>CampusBook</span>
-        </Link>
+        <nav className="header-nav">{navLinks}</nav>
 
-        {/* Desktop nav */}
-        <nav style={{ display:'flex', alignItems:'center', gap:'0.25rem' }} className="desktop-nav">
-          <Link to="/"           className={isActive('/')}           style={navStyle}>Home</Link>
-          <Link to="/facilities" className={isActive('/facilities')} style={navStyle}>Facilities</Link>
-          {user && (
-            <Link to="/dashboard" className={isActive('/dashboard')} style={navStyle}>My Bookings</Link>
-          )}
-          {isAdmin && (
-            <Link to="/admin" className={isActive('/admin')} style={{ ...navStyle, background:'rgba(255,255,255,.15)', borderRadius:'6px' }}>
-              ⚙️ Admin
-            </Link>
-          )}
-        </nav>
+        <div className="header-actions">
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </button>
 
-        {/* Auth section */}
-        <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
           {user ? (
-            <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
-              <div style={{ textAlign:'right', lineHeight:'1.2' }}>
-                <div style={{ fontSize:'0.85rem', fontWeight:600 }}>{user.name}</div>
-                <div style={{ fontSize:'0.7rem', opacity:0.8, textTransform:'capitalize' }}>{user.role}</div>
+            <>
+              <div className="header-user">
+                <div className="header-user-name">{user.name}</div>
+                <div className="header-user-role">{user.role}</div>
               </div>
-              <button onClick={handleLogout} style={{
-                background:'rgba(255,255,255,.15)', border:'1px solid rgba(255,255,255,.3)',
-                color:'#fff', padding:'0.4rem 0.9rem', borderRadius:'6px',
-                cursor:'pointer', fontSize:'0.85rem', fontWeight:500,
-              }}>
+              <button onClick={handleLogout} className="btn btn-secondary btn-sm">
                 Logout
               </button>
-            </div>
+            </>
           ) : (
             <>
-              <Link to="/login"    style={{ color:'#fff', textDecoration:'none', fontSize:'0.9rem', fontWeight:500 }}>Login</Link>
-              <Link to="/register" style={{
-                background:'#fff', color:'#1a73e8', textDecoration:'none',
-                padding:'0.4rem 1rem', borderRadius:'6px', fontSize:'0.9rem', fontWeight:600,
-              }}>Register</Link>
+              <Link to="/login" className="header-auth-link">Login</Link>
+              <Link to="/register" className="btn btn-primary btn-sm">Register</Link>
             </>
           )}
+
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileOpen(prev => !prev)}
+            aria-label="Navigation menu"
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
       </div>
 
-      <style>{`
-        .nav-link { color:#fff; text-decoration:none; padding:0.4rem 0.75rem; border-radius:6px; font-size:0.9rem; font-weight:500; transition:background 0.2s; }
-        .nav-link:hover { background:rgba(255,255,255,.15); text-decoration:none; }
-        .nav-link.active { background:rgba(255,255,255,.2); }
-      `}</style>
+      <nav className={`mobile-nav ${mobileOpen ? 'open' : ''}`}>
+        {navLinks}
+        {user ? (
+          <button onClick={handleLogout} className="btn btn-secondary btn-sm mt-1" style={{ alignSelf: 'flex-start' }}>
+            Logout
+          </button>
+        ) : (
+          <div className="flex gap-1 mt-1">
+            <Link to="/login" className="btn btn-secondary btn-sm" onClick={closeMobile}>Login</Link>
+            <Link to="/register" className="btn btn-primary btn-sm" onClick={closeMobile}>Register</Link>
+          </div>
+        )}
+      </nav>
     </header>
   );
 };
-
-const navStyle = { color:'#fff', textDecoration:'none', padding:'0.4rem 0.75rem', borderRadius:'6px', fontSize:'0.9rem', fontWeight:500 };
 
 export default Header;

@@ -2,15 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const TYPE_ICONS = {
-  lab:        '🔬',
-  room:       '🏫',
-  gym:        '💪',
-  auditorium: '🎭',
-  sports:     '⚽',
-  study_room: '📚',
-};
-
 const FacilityCard = ({ facility }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -21,79 +12,53 @@ const FacilityCard = ({ facility }) => {
     upcoming_bookings = 0, is_active,
   } = facility;
 
-  const icon = TYPE_ICONS[facility_type] || '🏢';
-
   const handleBook = () => {
     if (!user) { navigate('/login'); return; }
     navigate(`/book/${id}`);
   };
 
   return (
-    <div className="card" style={{ display:'flex', flexDirection:'column' }}>
-      {/* Colour banner */}
-      <div style={{
-        height: '8px',
-        background: facilityColor(facility_type),
-      }}/>
+    <div className="card card-hoverable facility-card">
+      <div className="facility-card-banner" style={{ background: facilityColor(facility_type) }} />
 
-      <div className="card-body" style={{ flex:1, display:'flex', flexDirection:'column', gap:'0.75rem' }}>
-        {/* Header */}
-        <div className="flex-between">
-          <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
-            <span style={{ fontSize:'1.6rem' }}>{icon}</span>
-            <div>
-              <h3 style={{ margin:0, fontSize:'1rem' }}>{name}</h3>
-              <p style={{ margin:0, fontSize:'0.8rem', color:'var(--gray-500)' }}>📍 {location}</p>
-            </div>
+      <div className="card-body">
+        <div className="facility-card-header">
+          <div>
+            <h3 className="facility-card-name">{name}</h3>
+            <p className="facility-card-location">{location}</p>
           </div>
           <span className={`badge badge-${facility_type}`}>{facility_type.replace('_', ' ')}</span>
         </div>
 
-        {/* Description */}
         {description && (
-          <p style={{ fontSize:'0.85rem', color:'var(--gray-700)', lineHeight:'1.5', margin:0 }}>
-            {description.length > 120 ? description.slice(0, 120) + '…' : description}
+          <p className="facility-card-desc">
+            {description.length > 120 ? description.slice(0, 120) + '\u2026' : description}
           </p>
         )}
 
-        {/* Stats row */}
-        <div style={{ display:'flex', gap:'1rem', fontSize:'0.82rem', color:'var(--gray-700)' }}>
-          <span>👥 <strong>{capacity}</strong> capacity</span>
-          <span>📅 <strong>{upcoming_bookings}</strong> upcoming</span>
-          {requires_approval && <span>✋ Approval required</span>}
+        <div className="facility-card-stats">
+          <span>Capacity: <strong>{capacity}</strong></span>
+          <span>Upcoming: <strong>{upcoming_bookings}</strong></span>
+          {requires_approval && <span>Approval required</span>}
         </div>
 
-        {/* Amenities */}
         {amenities.length > 0 && (
-          <div style={{ display:'flex', flexWrap:'wrap', gap:'0.3rem' }}>
+          <div className="facility-card-amenities">
             {amenities.slice(0, 4).map(a => (
-              <span key={a} style={{
-                background:'var(--gray-100)', padding:'0.15rem 0.5rem',
-                borderRadius:'999px', fontSize:'0.72rem', color:'var(--gray-700)',
-              }}>{a}</span>
+              <span key={a} className="facility-card-amenity">{a}</span>
             ))}
             {amenities.length > 4 && (
-              <span style={{ fontSize:'0.72rem', color:'var(--gray-500)' }}>+{amenities.length - 4} more</span>
+              <span className="text-muted text-small">+{amenities.length - 4} more</span>
             )}
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="card-footer" style={{ display:'flex', gap:'0.5rem' }}>
-        <button
-          onClick={() => navigate(`/facilities`)}
-          className="btn btn-secondary btn-sm"
-          style={{ flex:1 }}
-        >
+      <div className="card-footer">
+        <button onClick={() => navigate('/facilities')} className="btn btn-secondary btn-sm">
           View Details
         </button>
-        <button
-          onClick={handleBook}
-          className="btn btn-primary btn-sm"
-          style={{ flex:1 }}
-          disabled={!is_active}
-        >
+        <button onClick={handleBook} className="btn btn-primary btn-sm" disabled={!is_active}>
           {is_active ? 'Book Now' : 'Unavailable'}
         </button>
       </div>
@@ -103,14 +68,14 @@ const FacilityCard = ({ facility }) => {
 
 const facilityColor = (type) => {
   const map = {
-    lab:        'linear-gradient(90deg,#1a73e8,#4285f4)',
-    room:       'linear-gradient(90deg,#e91e63,#f06292)',
-    gym:        'linear-gradient(90deg,#7b1fa2,#ab47bc)',
-    auditorium: 'linear-gradient(90deg,#1b5e20,#43a047)',
-    sports:     'linear-gradient(90deg,#f57f17,#ffa726)',
-    study_room: 'linear-gradient(90deg,#00695c,#26a69a)',
+    lab:        'linear-gradient(90deg,#3b82f6,#60a5fa)',
+    room:       'linear-gradient(90deg,#ec4899,#f472b6)',
+    gym:        'linear-gradient(90deg,#8b5cf6,#a78bfa)',
+    auditorium: 'linear-gradient(90deg,#22c55e,#4ade80)',
+    sports:     'linear-gradient(90deg,#f59e0b,#fbbf24)',
+    study_room: 'linear-gradient(90deg,#14b8a6,#2dd4bf)',
   };
-  return map[type] || 'linear-gradient(90deg,#607d8b,#90a4ae)';
+  return map[type] || 'linear-gradient(90deg,#6b7280,#9ca3af)';
 };
 
 export default FacilityCard;

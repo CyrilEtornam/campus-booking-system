@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { facilityApi } from '../services/api';
 import FacilityCard from '../components/FacilityCard';
+import { SkeletonCard } from '../components/SkeletonLoader';
 
-const TYPES = ['all','room','lab','gym','auditorium','sports','study_room'];
+const TYPES = ['all', 'room', 'lab', 'gym', 'auditorium', 'sports', 'study_room'];
 
 const FacilitiesPage = () => {
   const [facilities, setFacilities] = useState([]);
@@ -30,7 +31,7 @@ const FacilitiesPage = () => {
   }, [search, type, minCap]);
 
   useEffect(() => {
-    const t = setTimeout(fetchFacilities, 300); // debounce search
+    const t = setTimeout(fetchFacilities, 300);
     return () => clearTimeout(t);
   }, [fetchFacilities]);
 
@@ -42,29 +43,28 @@ const FacilitiesPage = () => {
           <span className="text-muted">{facilities.length} facility{facilities.length !== 1 ? 'ies' : 'y'} available</span>
         </div>
 
-        {/* Filters */}
-        <div className="card" style={{ marginBottom:'1.5rem' }}>
-          <div className="card-body" style={{ display:'flex', gap:'0.75rem', flexWrap:'wrap', alignItems:'flex-end' }}>
-            <div className="form-group" style={{ flex:'1', minWidth:'180px', margin:0 }}>
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div className="card-body filters-bar">
+            <div className="form-group filter-group filter-group--grow">
               <label className="form-label">Search</label>
               <input
                 className="form-control"
-                placeholder="Name, location, description…"
+                placeholder="Name, location, description..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <div className="form-group" style={{ margin:0 }}>
+            <div className="form-group filter-group">
               <label className="form-label">Type</label>
               <select className="form-control" value={type} onChange={e => setType(e.target.value)}>
-                {TYPES.map(t => <option key={t} value={t}>{t === 'all' ? 'All Types' : t.replace('_',' ')}</option>)}
+                {TYPES.map(t => <option key={t} value={t}>{t === 'all' ? 'All Types' : t.replace('_', ' ')}</option>)}
               </select>
             </div>
-            <div className="form-group" style={{ margin:0 }}>
+            <div className="form-group filter-group">
               <label className="form-label">Min Capacity</label>
               <input
                 type="number" className="form-control" placeholder="e.g. 10"
-                style={{ width:'110px' }}
+                style={{ width: '110px' }}
                 value={minCap}
                 onChange={e => setMinCap(e.target.value)}
               />
@@ -75,26 +75,23 @@ const FacilitiesPage = () => {
           </div>
         </div>
 
-        {/* Type filter pills */}
-        <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap', marginBottom:'1.25rem' }}>
+        <div className="type-pills">
           {TYPES.map(t => (
             <button key={t} onClick={() => setType(t)}
               className={`btn btn-sm ${type === t ? 'btn-primary' : 'btn-secondary'}`}>
-              {t === 'all' ? 'All' : t.replace('_',' ')}
+              {t === 'all' ? 'All' : t.replace('_', ' ')}
             </button>
           ))}
         </div>
 
-        {error   && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger">{error}</div>}
 
         {loading ? (
-          <div className="loading-container">
-            <div className="spinner"/>
-            <p>Loading facilities…</p>
+          <div className="grid-3">
+            {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
           </div>
         ) : facilities.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏢</div>
             <h3>No facilities found</h3>
             <p>Try adjusting your search or filters.</p>
             <button className="btn btn-primary mt-2" onClick={() => { setSearch(''); setType('all'); setMinCap(''); }}>
@@ -103,7 +100,7 @@ const FacilitiesPage = () => {
           </div>
         ) : (
           <div className="grid-3">
-            {facilities.map(f => <FacilityCard key={f.id} facility={f}/>)}
+            {facilities.map(f => <FacilityCard key={f.id} facility={f} />)}
           </div>
         )}
       </div>

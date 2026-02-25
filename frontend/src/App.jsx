@@ -8,6 +8,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 import Header        from './components/Header';
 import HomePage      from './pages/HomePage';
@@ -69,7 +70,9 @@ const AppShell = () => {
 
 const App = () => (
   <AuthProvider>
-    <AppShell />
+    <ThemeProvider>
+      <AppShell />
+    </ThemeProvider>
   </AuthProvider>
 );
 
