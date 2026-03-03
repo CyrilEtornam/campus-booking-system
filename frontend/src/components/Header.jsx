@@ -58,14 +58,14 @@ const Header = () => {
       <Link to="/" className={navLinkClass('/')} onClick={closeMobile}>Home</Link>
       <Link to="/facilities" className={navLinkClass('/facilities')} onClick={closeMobile}>Facilities</Link>
       {user && <Link to="/dashboard" className={navLinkClass('/dashboard')} onClick={closeMobile}>My Bookings</Link>}
-      {isAdmin && <Link to="/admin" className={navLinkClass('/admin')} onClick={closeMobile}>Admin</Link>}
+      {isAdmin && <Link to="/admin" className="btn btn-outline btn-sm" style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }} onClick={closeMobile}>Admin Panel</Link>}
     </>
   );
 
   return (
     <header className="header">
       <div className="container">
-        <Link to="/" className="header-logo">CampusBook</Link>
+        <Link to="/" className="header-logo">spaces.</Link>
 
         <nav className="header-nav">{navLinks}</nav>
 
@@ -89,7 +89,7 @@ const Header = () => {
               </button>
             </>
           ) : (
-            <>
+            <>  
               <Link to="/login" className="header-auth-link">Login</Link>
               <Link to="/register" className="btn btn-primary btn-sm">Register</Link>
             </>

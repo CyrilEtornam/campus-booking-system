@@ -52,7 +52,7 @@ const LoginPage = () => {
                 <label className="form-label">Password</label>
                 <input
                   type="password" className="form-control"
-                  placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                  placeholder="password"
                   value={password} onChange={e => setPassword(e.target.value)}
                   required
                 />

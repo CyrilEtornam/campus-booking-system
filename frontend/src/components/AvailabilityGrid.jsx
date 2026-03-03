@@ -7,11 +7,14 @@ const STATUS_MAP = {
   pending:   { cssClass: 'slot--pending',   label: 'Pending' },
 };
 
-const AvailabilityGrid = ({ facilityId, date, onSelectSlot, selectedSlot }) => {
+const AvailabilityGrid = ({ facilityId, date, onSelectSlot }) => {
   const [slots,   setSlots]   = useState([]);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const [summary, setSummary] = useState(null);
+
+  const [rangeStart, setRangeStart] = useState(null);
+  const [rangeEnd,   setRangeEnd]   = useState(null);
 
   const fetchSlots = useCallback(async () => {
     if (!facilityId || !date) return;
@@ -35,6 +38,63 @@ const AvailabilityGrid = ({ facilityId, date, onSelectSlot, selectedSlot }) => {
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
+  useEffect(() => {
+    setRangeStart(null);
+    setRangeEnd(null);
+  }, [facilityId, date]);
+
+  const handleSlotClick = (slot) => {
+    if (slot.status !== 'available') return;
+
+    if (!rangeStart || rangeEnd) {
+      // First click (or resetting after a completed range)
+      setRangeStart(slot);
+      setRangeEnd(null);
+      onSelectSlot && onSelectSlot({ start: slot.start, end: slot.end });
+    } else {
+      // Second click — define range end
+      if (slot.start === rangeStart.start) {
+        // Clicked same slot: confirm single selection
+        onSelectSlot && onSelectSlot({ start: slot.start, end: slot.end });
+        return;
+      }
+
+      let start = rangeStart;
+      let end = slot;
+      if (slot.start < rangeStart.start) {
+        start = slot;
+        end = rangeStart;
+      }
+
+      // Validate all intermediate slots are available
+      const inRange = slots.filter(s => s.start >= start.start && s.start < end.end);
+      const allAvailable = inRange.every(s => s.status === 'available');
+
+      if (!allAvailable) {
+        // Blocked slot in range — restart with this slot
+        setRangeStart(slot);
+        setRangeEnd(null);
+        onSelectSlot && onSelectSlot({ start: slot.start, end: slot.end });
+        return;
+      }
+
+      setRangeStart(start);
+      setRangeEnd(end);
+      onSelectSlot && onSelectSlot({ start: start.start, end: end.start });
+    }
+  };
+
+  const isEndpoint = (s) => {
+    if (rangeStart && s.start === rangeStart.start) return true;
+    if (rangeEnd && s.start === rangeEnd.start) return true;
+    return false;
+  };
+
+  const isInRange = (s) => {
+    if (!rangeStart || !rangeEnd) return false;
+    return s.start > rangeStart.start && s.start < rangeEnd.start;
+  };
+
   if (loading) return (
     <div className="loading-container" style={{ padding: '2rem' }}>
       <div className="spinner" />
@@ -48,21 +108,19 @@ const AvailabilityGrid = ({ facilityId, date, onSelectSlot, selectedSlot }) => {
   const am = slots.filter(s => parseInt(s.start) < 12);
   const pm = slots.filter(s => parseInt(s.start) >= 12);
 
-  const isSelected = (s) =>
-    selectedSlot && s.start === selectedSlot.start && s.end === selectedSlot.end;
-
   const renderSlot = (slot) => {
     const info    = STATUS_MAP[slot.status] || STATUS_MAP.available;
     const canBook = slot.status === 'available';
-    const sel     = isSelected(slot);
+    const sel     = isEndpoint(slot);
+    const inRange = isInRange(slot);
 
     return (
       <button
         key={slot.start}
-        onClick={() => canBook && onSelectSlot && onSelectSlot(slot)}
+        onClick={() => canBook && handleSlotClick(slot)}
         disabled={!canBook}
         title={canBook ? `Book ${slot.start}\u2013${slot.end}` : `${info.label} by ${slot.booking?.booked_by || 'another user'}`}
-        className={`slot ${info.cssClass} ${sel ? 'slot--selected' : ''}`}
+        className={`slot ${info.cssClass} ${sel ? 'slot--selected' : ''} ${inRange ? 'slot--in-range' : ''}`}
       >
         <div>{slot.start}</div>
         <div className="slot-label">{info.label}</div>
@@ -98,6 +156,13 @@ const AvailabilityGrid = ({ facilityId, date, onSelectSlot, selectedSlot }) => {
           Selected
         </span>
       </div>
+
+      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+        Click a slot to select it, or click two slots to select a range.
+        {rangeStart && !rangeEnd && (
+          <span style={{ color: 'var(--accent)', fontWeight: 600 }}> Now click another slot to set the end of your range.</span>
+        )}
+      </p>
 
       {am.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>

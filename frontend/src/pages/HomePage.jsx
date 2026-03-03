@@ -26,7 +26,7 @@ const HomePage = () => {
     <div className="home-page">
       {/* Hero */}
       <section className="hero">
-        <div className="container" style={{ maxWidth: '700px' }}>
+        <div className="container" style={{ maxWidth: '750px' }}>
           <h1>Campus Facility Booking System</h1>
           <p>
             Easily reserve labs, study rooms, sports halls, and lecture theatres.

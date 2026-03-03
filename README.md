@@ -11,17 +11,17 @@ A full-stack web application for booking campus facilities (labs, study rooms, s
 ┌──────────────────────────────────────────────────────────────────────┐
 │                         MVC Architecture                             │
 │                                                                      │
-│  Browser (React)              Backend (Spring Boot)                  │
-│  ┌─────────────┐              ┌────────────────────────────────┐    │
-│  │   VIEW      │   HTTP/      │  @RestController  →  @Service   │   │
-│  │  (React     │   REST API   │  (controller/)  →  (service/)   │   │
-│  │  Components)│   ◄──────►  │                    ↓            │   │
-│  │  Pages /    │              │               @Repository        │   │
-│  │  Components │              │              (repository/)       │   │
-│  └─────────────┘              │                    ↓            │   │
-│                                │            PostgreSQL DB         │   │
-│                                │          (JPA / Hibernate)       │   │
-│                                └────────────────────────────────┘   │
+│  Browser (React)                    Backend (Spring Boot)            │
+│  ┌─────────────┐              ┌────────────────────────────────┐     │
+│  │   VIEW      │   HTTP/      │  @RestController  →  @Service  │     │
+│  │  (React     │   REST API   │  (controller/)  →  (service/)  │     │
+│  │  Components)│   ◄──────►   │                ↓               │     │
+│  │  Pages /    │              │           @Repository          │     │
+│  │  Components │              │          (repository/)         │     │
+│  └─────────────┘              │                 ↓              │     │
+│                               │           PostgreSQL DB        │     │
+│                               │        (JPA / Hibernate)       │     │
+│                               └────────────────────────────────┘     │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -42,6 +42,7 @@ A full-stack web application for booking campus facilities (labs, study rooms, s
 ```
 campus-booking-system/
 ├── backend/                                   ← Spring Boot 3 / Java 21
+│   ├── Dockerfile                             ← Multi-stage Maven → JRE 21 Alpine
 │   ├── pom.xml
 │   └── src/main/
 │       ├── java/com/campus/booking/
@@ -92,6 +93,9 @@ campus-booking-system/
 │           └── application-local.properties   ← Local dev overrides
 │
 ├── frontend/                                  ← React 18 / Vite 5
+│   ├── Dockerfile                             ← Multi-stage Node 20 → Nginx Alpine
+│   ├── nginx.conf                             ← SPA fallback + asset caching
+│   ├── vercel.json                            ← Vercel SPA rewrite rules
 │   ├── package.json
 │   ├── vite.config.js
 │   └── src/
@@ -223,7 +227,7 @@ Open **http://localhost:5173**
 ### Bookings
 | Method | Endpoint           | Auth  | Description |
 |--------|--------------------|-------|-------------|
-| GET    | /api/bookings      | JWT   | List (users see own; admins see all) |
+| GET    | /api/bookings      | JWT   | List (users see own; admins see all + aggregate stats) |
 | GET    | /api/bookings/:id  | JWT   | Get one |
 | POST   | /api/bookings      | JWT   | Create (conflict check included) |
 | PUT    | /api/bookings/:id  | JWT   | Update / approve / reject |
@@ -232,8 +236,8 @@ Open **http://localhost:5173**
 ### Availability
 | Method | Endpoint                | Auth | Description |
 |--------|-------------------------|------|-------------|
-| GET    | /api/availability       | –    | 30-min slot grid for a date |
-| GET    | /api/availability/week  | –    | 7-day availability summary |
+| GET    | /api/availability       | –    | 30-min slot grid (`?facility_id`, `?date`, `?start_time`, `?end_time`) |
+| GET    | /api/availability/week  | –    | 7-day availability summary (`?facility_id`, `?start_date`) |
 
 ### Health
 | Method | Endpoint     | Auth | Description |
@@ -252,6 +256,12 @@ WHERE b.startTime < :endTime AND b.endTime > :startTime
   AND b.status <> 'CANCELLED'
 ```
 Any overlap (including edge cases) raises a `ConflictException` (HTTP 409).
+
+### Booking Validation
+- Start time must be before end time
+- Maximum booking duration: **8 hours**
+- No bookings allowed for past dates
+- Attendee count must not exceed facility capacity
 
 ### Booking Approval Workflow
 - Facilities with `requiresApproval = true` create bookings with `status = PENDING`
@@ -281,6 +291,27 @@ Any overlap (including edge cases) raises a `ConflictException` (HTTP 409).
 3. Publish directory: `dist`
 4. Set `VITE_API_URL` to your deployed backend URL + `/api`
 
+### Docker
+
+Both services have multi-stage Dockerfiles for production builds.
+
+```bash
+# Backend (Maven build → JRE 21 Alpine runtime)
+cd backend
+docker build -t campus-booking-api .
+docker run -p 5000:5000 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PASSWORD=yourpassword \
+  -e JWT_SECRET=your-secret-key \
+  campus-booking-api
+
+# Frontend (Node 20 build → Nginx Alpine)
+cd frontend
+docker build --build-arg VITE_API_URL=http://localhost:5000/api \
+  -t campus-booking-ui .
+docker run -p 80:80 campus-booking-ui
+```
+
 ---
 
 ## Extra Features Implemented
@@ -295,7 +326,10 @@ Any overlap (including edge cases) raises a `ConflictException` (HTTP 409).
 | Search & filter (type, capacity, keyword) | ✅ |
 | Booking conflict detection & visualisation | ✅ |
 | Weekly availability calendar | ✅ |
+| Dark / light theme toggle (system-preference aware) | ✅ |
+| Skeleton loading placeholders | ✅ |
 | Responsive UI | ✅ |
+| Docker multi-stage builds (backend + frontend) | ✅ |
 | Sample data seeder (`seed` profile) | ✅ |
 | Global exception handler (`@ControllerAdvice`) | ✅ |
 | Snake_case JSON serialisation (frontend compat) | ✅ |

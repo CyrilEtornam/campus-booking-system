@@ -31,7 +31,7 @@ const RegisterPage = () => {
         <div className="card">
           <div className="card-body p-3">
             <h2 className="auth-title">Create Account</h2>
-            <p className="auth-subtitle">Join the Campus Booking System</p>
+            <p className="auth-subtitle">Join spaces.</p>
 
             {error && <div className="alert alert-danger">{error}</div>}
 
@@ -48,7 +48,7 @@ const RegisterPage = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Password * <span className="text-muted" style={{ fontSize: '0.75rem' }}>(min 8 chars, must include a number)</span></label>
-                <input type="password" className="form-control" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                <input type="password" className="form-control" placeholder="password"
                   value={form.password} onChange={e => set('password', e.target.value)} required />
               </div>
               <div className="grid-2">

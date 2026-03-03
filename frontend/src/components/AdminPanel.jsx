@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { bookingApi, facilityApi } from '../services/api';
 import BookingHistory from './BookingHistory';
-import { ConfirmModal, PromptModal } from './Modal';
+import Modal, { ConfirmModal, PromptModal } from './Modal';
 
 const FacilityForm = ({ initial, onSave, onCancel }) => {
   const [form, setForm] = useState(initial || {
@@ -223,18 +223,18 @@ const AdminPanel = () => {
                 </button>
               </div>
 
-              {showForm && (
-                <div className="card" style={{ marginBottom: '1.5rem' }}>
-                  <div className="card-header">{editFacility ? 'Edit Facility' : 'Add New Facility'}</div>
-                  <div className="card-body">
-                    <FacilityForm
-                      initial={editFacility}
-                      onSave={() => { setShowForm(false); setEditFacility(null); loadFacilities(); }}
-                      onCancel={() => { setShowForm(false); setEditFacility(null); }}
-                    />
-                  </div>
-                </div>
-              )}
+              <Modal
+                isOpen={showForm}
+                onClose={() => { setShowForm(false); setEditFacility(null); }}
+                title={editFacility ? 'Edit Facility' : 'Add New Facility'}
+                size="lg"
+              >
+                <FacilityForm
+                  initial={editFacility}
+                  onSave={() => { setShowForm(false); setEditFacility(null); loadFacilities(); }}
+                  onCancel={() => { setShowForm(false); setEditFacility(null); }}
+                />
+              </Modal>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {facilities.map(f => (

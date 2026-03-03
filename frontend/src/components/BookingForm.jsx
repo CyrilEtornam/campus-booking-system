@@ -102,7 +102,6 @@ const BookingForm = ({ facility, onSuccess }) => {
             facilityId={facility.id}
             date={date}
             onSelectSlot={handleSlotSelect}
-            selectedSlot={slot}
           />
 
           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
